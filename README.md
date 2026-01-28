@@ -27,3 +27,13 @@ While LLMs are excellent at reasoning, they struggle with accurate data validati
    python -m venv venv
    .\venv\Scripts\activate
    pip install fastmcp
+
+## Verification & Debugging
+To ensure the Python backend and the MCP interface are communicating correctly, I use the **MCP Inspector**. This allows for real-time testing of the tool's JSON-RPC responses.
+
+### Test Case: Duplicate Detection
+* **Input:** `[10,20,30,10,10,40]`
+* **Expected Output:** `Duplicate detected: 10`
+* **Status:** Verified 
+
+![MCP Inspector Verification](app_inspector_verified.png)
