@@ -1,5 +1,6 @@
 import pandas as pd
 from fastmcp import FastMCP
+import bisect
 
 # Initialize our service
 mcp = FastMCP("Data_Integrity_Service")
@@ -7,6 +8,7 @@ mcp = FastMCP("Data_Integrity_Service")
 # The 'Vault' is our high-speed index (Hash Map)
 # We use this to store cleaned data for instant retrieval
 data_vault = {}
+sorted_keys = []
 
 # --- BUSINESS LOGIC ---
 
@@ -105,6 +107,29 @@ def get_clean_record(record_id: str) -> dict:
     if record:
         return {"id": record_id, "vitals": record}
     return {"status": "error", "message": "Record ID not found in the sanitized vault."}
+
+@mcp.tool()
+def query_vault_range(start_id: str, end_id: str) -> dict:
+    """
+    Retrieves a block of sanitized records within a specific range.
+    Uses O(log n) Binary Search to locate the boundaries in the index.
+    """
+    # Use Binary Search to find the range boundaries
+    left_idx = bisect.bisect_left(sorted_keys, start_id)
+    right_idx = bisect.bisect_right(sorted_keys, end_id)
+    
+    # Slice the sorted index and fetch data
+    ids_in_range = sorted_keys[left_idx:right_idx]
+    results = {rid: data_vault[rid] for rid in ids_in_range}
+    
+    return {
+        "metadata": {
+            "query_range": f"{start_id} to {end_id}",
+            "records_found": len(results),
+            "efficiency": "O(log n) search"
+        },
+        "records": results
+    }
 
 if __name__ == "__main__":
     mcp.run()
